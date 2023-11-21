@@ -1,0 +1,10 @@
+15:19:53 **** Incremental Build of configuration Debug for project 006Read ****
+make -j12 all 
+arm-none-eabi-size   006Read.elf 
+   text	   data	    bss	    dec	    hex	filename
+    788	      8	   1568	   2364	    93c	006Read.elf
+Finished building: default.size.stdout
+ 
+
+15:19:53 Build Finished. 0 errors, 0 warnings. (took 670ms)
+
