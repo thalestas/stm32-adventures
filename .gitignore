@@ -2,6 +2,7 @@
 .metadata
 *.launch
 *3_CortexMxProgramming
+*.prefs
 
 # https://github.com/github/gitignore/blob/master/C.gitignore
 
