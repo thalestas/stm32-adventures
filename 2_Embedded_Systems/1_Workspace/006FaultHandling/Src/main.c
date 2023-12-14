@@ -28,6 +28,9 @@
 #define FAULT_SVCALL_PENDED 15
 #define FAULT_SVCALL_ACTIVE 7
 
+//#define UNDEF_1
+//#define UNDEF_2
+
 enum UsageFaultType{
 	UNDEFINSTR 	= 0x1,
 	INVSTATE	= 0x2,
@@ -46,6 +49,7 @@ enum UsageFaultType check_usage_fault(void) {
 	return ret;
 }
 
+
 int main(void)
 {
     /* Loop forever */
@@ -56,6 +60,7 @@ int main(void)
 	SHCRS |= (1 << FAULT_BUS);			//Enable Bus Fault
 
 	/* 1- Undefined Instruction */
+#ifdef UNDEF_1
 	/* Method 1 */
 	uint32_t *pINV = (uint32_t*) 0x2000FF01; //Needs to finish to 1 due the T bit
 	*pINV = 0xFFFFFFFF;
@@ -64,14 +69,13 @@ int main(void)
 	function_pointer = (void*) pINV;
 
 	function_pointer();
+#endif
 
-
-
-	/* Method 2
+#ifdef UNDEF_2
+	/* Method 2 */
 	__asm volatile("LDR R3, =#0x2000FF01");
 	__asm volatile("BLX R3");
-	*/
-
+#endif
 
 	/* 2- Divide by zero */
 	/* 3- Instruction from peripheral region */
