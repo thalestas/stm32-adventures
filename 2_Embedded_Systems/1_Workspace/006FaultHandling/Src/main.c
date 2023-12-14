@@ -30,7 +30,8 @@
 
 //#define UNDEF_1
 //#define UNDEF_2
-#define DIV0
+//#define DIV0
+#define PERI
 
 enum UsageFaultType{
 	UNDEFINSTR 	= 0x1,
@@ -85,7 +86,22 @@ int main(void)
 
 #endif
 
+
+#ifdef PERI
 	/* 3- Instruction from peripheral region */
+	//pointer to peripheral region
+	uint32_t *pPERI = (uint32_t*) 0x5000FFFF;
+	//*pPER = 0x12345678;
+	//Create function pointer and point it to pPER
+	void (*crazy_func)(void);
+	crazy_func = pPERI;
+
+	//Call function
+	crazy_func();
+#endif
+
+
+
 	/* 4- Executing SVC inside the SVC handler*/
 	/* 5- Executing SVC instruction inside interrupt handler*/
 
@@ -95,7 +111,7 @@ int main(void)
 
 
 void MemManage_Handler(void){
-
+	printf("Pacu: \n");
 }
 
 void BusFault_Handler(void){
