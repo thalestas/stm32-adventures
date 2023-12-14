@@ -30,6 +30,7 @@
 
 //#define UNDEF_1
 //#define UNDEF_2
+#define DIV0
 
 enum UsageFaultType{
 	UNDEFINSTR 	= 0x1,
@@ -78,6 +79,12 @@ int main(void)
 #endif
 
 	/* 2- Divide by zero */
+#ifdef DIV0
+
+	int res = 10/0;
+
+#endif
+
 	/* 3- Instruction from peripheral region */
 	/* 4- Executing SVC inside the SVC handler*/
 	/* 5- Executing SVC instruction inside interrupt handler*/
@@ -104,6 +111,9 @@ void UsageFault_Handler(void){
     	break;
     case INVSTATE:
     	printf("auspicioso\n");
+    	break;
+    case DIVBYZERO:
+    	printf("inefavel\n");
     	break;
     default:
     	printf("enfadoinho\n");
