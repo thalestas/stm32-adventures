@@ -3,6 +3,7 @@
 *.launch
 *3_CortexMxProgramming
 *.prefs
+*Debug
 
 # https://github.com/github/gitignore/blob/master/C.gitignore
 

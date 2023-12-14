@@ -1,5 +1,0 @@
-main.c:26:6:enable_exception	1
-main.c:36:6:set_pending	1
-main.c:46:5:main	1
-main.c:68:6:EXTI0_IRQHandler	1
-main.c:72:6:SPI4_IRQHandler	1
