@@ -42,12 +42,26 @@ enum UsageFaultType{
 	DIVBYZERO	= 0x200
 };
 
+enum MemManageFaultType{
+	IACCVIOL	= 0x1,
+	DACCVIOL	= 0x2,
+	MUNSTKERR	= 0x8,
+	MSTKERR		= 0x10,
+	MLSPERR		= 0x20,
+	MMARVALID 	= 0x80
+};
+
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
 enum UsageFaultType check_usage_fault(void) {
 	enum UsageFaultType ret = CFSR >> 16;
+	return ret;
+}
+
+enum MemManageFaultType check_mem_fault(void) {
+	enum MemManageFaultType ret = CFSR;
 	return ret;
 }
 
@@ -94,7 +108,7 @@ int main(void)
 	//*pPER = 0x12345678;
 	//Create function pointer and point it to pPER
 	void (*crazy_func)(void);
-	crazy_func = pPERI;
+	crazy_func = (void*) pPERI;
 
 	//Call function
 	crazy_func();
@@ -112,6 +126,14 @@ int main(void)
 
 void MemManage_Handler(void){
 	printf("Pacu: \n");
+
+    switch(check_mem_fault()){
+    case IACCVIOL:
+    	printf("exdruxulo \n");
+    	break;
+    default:
+    	printf("enfadoinho\n");
+    }
 }
 
 void BusFault_Handler(void){
