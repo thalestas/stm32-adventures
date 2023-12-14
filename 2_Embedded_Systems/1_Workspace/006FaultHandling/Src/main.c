@@ -19,28 +19,44 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define SHCRS *(uint32_t*)0xE000ED24
+#define SHCRS 	*(uint32_t*)0xE000ED24
+#define CFSR 	*(uint32_t*)0xE000ED28
+
 #define FAULT_USAGE 18
 #define FAULT_BUS 17
 #define FAULT_MEM_MANAGE 16
 #define FAULT_SVCALL_PENDED 15
 #define FAULT_SVCALL_ACTIVE 7
 
+enum UsageFaultType{
+	UNDEFINSTR 	= 0x1,
+	INVSTATE	= 0x2,
+	INVPC		= 0x4,
+	NOCP		= 0x8,
+	UNALIGNED	= 0x100,
+	DIVBYZERO	= 0x200
+};
+
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
+
+enum UsageFaultType check_usage_fault(void) {
+	enum UsageFaultType ret = CFSR >> 16;
+	return ret;
+}
 
 int main(void)
 {
     /* Loop forever */
 	printf("Bodo!\n");
 
-	SHCRS |= (1 << FAULT_USAGE);
-	SHCRS |= (1 << FAULT_MEM_MANAGE);
-	SHCRS |= (1 << FAULT_BUS);
+	SHCRS |= (1 << FAULT_USAGE); 		//Enable Usage Fault
+	SHCRS |= (1 << FAULT_MEM_MANAGE);	//Enable Mem Fault
+	SHCRS |= (1 << FAULT_BUS);			//Enable Bus Fault
 
 	/* 1- Undefined Instruction */
-	/* Method 1
+	/* Method 1 */
 	uint32_t *pINV = (uint32_t*) 0x2000FF01; //Needs to finish to 1 due the T bit
 	*pINV = 0xFFFFFFFF;
 
@@ -48,12 +64,13 @@ int main(void)
 	function_pointer = (void*) pINV;
 
 	function_pointer();
-	*/
 
-	/* Method 2 */
-	__asm volatile("LDR R3, =#0x20001001");
+
+
+	/* Method 2
+	__asm volatile("LDR R3, =#0x2000FF01");
 	__asm volatile("BLX R3");
-
+	*/
 
 
 	/* 2- Divide by zero */
@@ -75,5 +92,16 @@ void BusFault_Handler(void){
 }
 
 void UsageFault_Handler(void){
-	printf("Jaraqui psicodelico\n");
+	printf("Jaraqui: \n");
+
+    switch(check_usage_fault()){
+    case UNDEFINSTR:
+    	printf("psicodelico\n");
+    	break;
+    case INVSTATE:
+    	printf("auspicioso\n");
+    	break;
+    default:
+    	printf("enfadoinho\n");
+    }
 }
