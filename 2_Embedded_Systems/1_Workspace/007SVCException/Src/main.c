@@ -25,8 +25,11 @@
 
 int main(void)
 {
-	printf("Teste!\n");
+	__asm volatile("SVC #0x02");
     /* Loop forever */
 	for(;;);
 }
 
+void SVC_Handler(void) {
+	printf("Jaraquiler!\n");
+}
