@@ -31,5 +31,17 @@ int main(void)
 }
 
 void SVC_Handler(void) {
-	printf("Jaraquiler!\n");
+	//Retrive MSP stack value
+	uint32_t msp;
+	__asm volatile("MRS %0,MSP" : "=r"(msp));
+
+	//Switch to the PC address on the stack
+	uint32_t *next_ins = msp;
+	next_ins += 12;
+
+	//Get the value of previous instruction which contains the SVC number
+	uint32_t *svc_number_addr = *(next_ins)-2;
+	uint8_t svc_number = *svc_number_addr;
+	//printf("Jaraquiler!\n");
+	printf("SVC Number: %d\n", svc_number);
 }
