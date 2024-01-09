@@ -27,6 +27,9 @@ int main(void)
 {
 	__asm volatile("SVC #0x02");
     /* Loop forever */
+	uint8_t svc_number;
+	__asm volatile("MOV %0,R0" : "=r"(svc_number));
+	printf("Tambaquiler! SVC number: %d\n", svc_number);
 	for(;;);
 }
 
@@ -55,4 +58,8 @@ void SVC_Handler_c(uint32_t* msp) {
 	uint8_t svc_number = *svc_number_addr;
 	printf("Jaraquiler!\n");
 	printf("SVC Number: %d\n", svc_number);
+
+	//returning the SVC number incremented by 4
+	svc_number += 4;
+	*msp = svc_number;
 }
