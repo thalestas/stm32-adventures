@@ -30,18 +30,29 @@ int main(void)
 	for(;;);
 }
 
-void SVC_Handler(void) {
+/* to avoid to get the stack already modified by the
+ * function prologue it should be used the naked function
+*/
+__attribute__((naked)) void SVC_Handler(void) {
+	__asm volatile("MRS R0,MSP");
+	//Call function SVC_Handler_c and pass the argument through R0
+	__asm volatile("B SVC_Handler_c");
+}
+
+void SVC_Handler_c(uint32_t* msp) {
 	//Retrive MSP stack value
-	uint32_t msp;
-	__asm volatile("MRS %0,MSP" : "=r"(msp));
+	//uint32_t msp;
+	//__asm volatile("MRS %0,MSP" : "=r"(msp));
 
 	//Switch to the PC address on the stack
-	uint32_t *next_ins = msp;
-	next_ins += 12;
+	//uint32_t *next_ins = msp;
+	//next_ins += 12;
+	uint32_t *next_ins = msp[6];
 
 	//Get the value of previous instruction which contains the SVC number
-	uint32_t *svc_number_addr = *(next_ins)-2;
+	//uint32_t *svc_number_addr = *(next_ins)-2;
+	uint8_t *svc_number_addr = (uint8_t*) next_ins-2;
 	uint8_t svc_number = *svc_number_addr;
-	//printf("Jaraquiler!\n");
+	printf("Jaraquiler!\n");
 	printf("SVC Number: %d\n", svc_number);
 }
