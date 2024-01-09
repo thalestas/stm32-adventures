@@ -16,6 +16,11 @@
  ******************************************************************************
  */
 
+#define ADD 36
+#define SUB 37
+#define MUL 38
+#define DIV 39
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -25,10 +30,36 @@
 
 int main(void)
 {
-	__asm volatile("SVC #0x02");
+	/* Store this variables on R0 and R1 register to pass to SVC handler*/
+	register uint8_t d1 asm ("r1") = 10;
+	register uint8_t d2 asm ("r2") = 5;
+
+	//addition
+	__asm volatile("SVC #36");
 	uint8_t svc_number;
 	__asm volatile("MOV %0,R0" : "=r"(svc_number));
-	printf("Tambaquiler! SVC number: %d\n", svc_number);
+	printf("Tambaquiler! Add: %d\n", svc_number);
+
+	//subtraction
+	d1 = 10;
+	d2 = 5;
+	__asm volatile("SVC #37");
+	__asm volatile("MOV %0,R0" : "=r"(svc_number));
+	printf("Tambaquiler! Sub: %d\n", svc_number);
+
+	//multiplication
+	d1 = 10;
+	d2 = 5;
+	__asm volatile("SVC #38");
+	__asm volatile("MOV %0,R0" : "=r"(svc_number));
+	printf("Tambaquiler! Mul: %d\n", svc_number);
+
+	//division
+	d1 = 10;
+	d2 = 5;
+	__asm volatile("SVC #39");
+	__asm volatile("MOV %0,R0" : "=r"(svc_number));
+	printf("Tambaquiler! Div: %d\n", svc_number);
 
 	for(;;);
 }
@@ -45,15 +76,26 @@ __attribute__((naked)) void SVC_Handler(void) {
 void SVC_Handler_c(uint32_t* msp) {
 	//Retrive MSP stack value
 	uint32_t *next_ins = msp[6];
+	uint8_t arg1 = msp[1];
+	uint8_t arg2 = msp[2];
 
 	//Get the value of previous instruction which contains the SVC number
-	//uint32_t *svc_number_addr = *(next_ins)-2;
 	uint8_t *svc_number_addr = (uint8_t*) next_ins-2;
 	uint8_t svc_number = *svc_number_addr;
-	printf("Jaraquiler!\n");
-	printf("SVC Number: %d\n", svc_number);
+	printf("Jaraquiler! SVC Number: %d\n", svc_number);
 
-	//returning the SVC number incremented by 4
-	svc_number += 4;
-	*msp = svc_number;
+	switch(svc_number) {
+	case ADD:
+		*msp = arg1 + arg2;
+		break;
+	case SUB:
+		*msp = arg1 - arg2;
+		break;
+	case MUL:
+		*msp = arg1 * arg2;
+		break;
+	case DIV:
+		*msp = arg1 / arg2;
+		break;
+	}
 }
