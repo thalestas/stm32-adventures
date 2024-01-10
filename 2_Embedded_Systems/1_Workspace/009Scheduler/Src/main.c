@@ -22,9 +22,37 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+#define SYSTICK_CLOCK_SOURCE	8000000U
+#define SYSTICK_CFG				1000U
+
+void systick_config(const uint32_t systick_freq);
+
 int main(void)
 {
 	printf("Tambaqui!\n");
+	systick_config(SYSTICK_CFG);
     /* Loop forever */
 	for(;;);
+}
+
+void systick_config(const uint32_t systick_freq) {
+	//SysTick registers
+	volatile uint32_t *const pSCSR = (uint32_t*) 0xE000E010;
+	volatile uint32_t *const pSRVR = (uint32_t*) 0xE000E014;
+
+	//Configure Reload Value to reach 1ms
+	*pSRVR &= ~(0x00FFFFFF);
+	*pSRVR = (SYSTICK_CLOCK_SOURCE / systick_freq) - 1;
+
+	/* Configure SysTick */
+	//Uses processor clock
+	*pSCSR |= (1 << 2);
+	//Enable exception request
+	*pSCSR |= (1 << 1);
+	//Enable SysTick
+	*pSCSR |= (1 << 0);
+}
+
+void SysTick_Handler(void) {
+	printf("Tucunare!\n");
 }
