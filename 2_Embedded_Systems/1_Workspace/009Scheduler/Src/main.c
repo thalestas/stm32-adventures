@@ -22,18 +22,46 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+/* Defines */
 #define SYSTICK_CLOCK_SOURCE	8000000U
 #define SYSTICK_CFG				1000U
 
+#define NUM_OF_TASKS			2
+
+#define PSP_START				0x20000000 + (1024 * NUM_OF_TASKS)
+#define TASK_STACK_SIZE			1024U
+
+#define PSR_INIT				0x1000000U
+#define PC_INIT					0x1U
+#define LR_INIT					0xFFFFFFFD
+
+/* Global Variable */
+static tasks_psp[NUM_OF_TASKS];
+
+/* Prototypes */
 void systick_config(const uint32_t systick_freq);
+void task_stack_init(const uint8_t num_of_tasks, uint32_t* tasks_addr);
+
+void task1(void);
+void task2(void);
 
 int main(void)
 {
 	printf("Tambaqui!\n");
 	systick_config(SYSTICK_CFG);
+
+	uint32_t *ptasks[NUM_OF_TASKS] = {
+			(uint32_t*) task1,
+			(uint32_t*) task2
+	};
+
+    task_stack_init(NUM_OF_TASKS, ptasks);
+
     /* Loop forever */
 	for(;;);
 }
+
+/* Systick Functions */
 
 void systick_config(const uint32_t systick_freq) {
 	//SysTick registers
@@ -55,4 +83,47 @@ void systick_config(const uint32_t systick_freq) {
 
 void SysTick_Handler(void) {
 	printf("Tucunare!\n");
+}
+
+/* Scheduler Functions */
+void task_stack_init(const uint8_t num_of_tasks, uint32_t* tasks_addr) {
+	volatile uint32_t* psp;
+
+	for(uint8_t i=0; i<num_of_tasks; i++) {
+		//First psp position
+		psp = PSP_START - (TASK_STACK_SIZE * i);
+
+		//Fill first with PSR
+		psp--;
+		*psp = PSR_INIT;
+
+		//Fill second with PC
+		psp--;
+		*psp = tasks_addr[i] + PC_INIT;
+
+		//Fill third with LR
+		psp--;
+		*psp = LR_INIT;
+
+		//Fill the other R0-R12 with 0
+		for(uint8_t j=0; j<13; j++) {
+			psp--;
+			*psp = 0x0;
+		}
+
+		//Save the task psp
+		tasks_psp[i] = psp;
+	}
+}
+
+/* Tasks Implementations */
+void task1(void){
+	while(1) {
+		printf("Jaraquiler!\n");
+	}
+}
+void task2(void){
+	while(1) {
+		printf("Bodoquiler!\n");
+	}
 }
