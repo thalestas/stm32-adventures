@@ -28,8 +28,11 @@
 
 #define NUM_OF_TASKS			2
 
-#define PSP_START				0x20000000 + (1024 * NUM_OF_TASKS)
+#define RAM_END					0x20000000
+#define PSP_START				RAM_END + (1024 * NUM_OF_TASKS) + SCHE_STACK_SIZE
+#define MSP_START				RAM_END + SCHE_STACK_SIZE
 #define TASK_STACK_SIZE			1024U
+#define SCHE_STACK_SIZE			1024U
 
 #define PSR_INIT				0x1000000U
 #define PC_INIT					0x1U
@@ -41,21 +44,33 @@ static tasks_psp[NUM_OF_TASKS];
 /* Prototypes */
 void systick_config(const uint32_t systick_freq);
 void task_stack_init(const uint8_t num_of_tasks, uint32_t* tasks_addr);
+__attribute__((naked)) void sche_stack_init(const uint32_t msp_start);
+__attribute__((naked)) void switch_to_psp(const uint32_t psp_start);
 
 void task1(void);
 void task2(void);
 
 int main(void)
 {
-	printf("Tambaqui!\n");
+	//Init MSP
+	sche_stack_init(MSP_START);
+
+	//Configure and init SysTick
 	systick_config(SYSTICK_CFG);
 
+	//Vector to hold tasks address
 	uint32_t *ptasks[NUM_OF_TASKS] = {
 			(uint32_t*) task1,
 			(uint32_t*) task2
 	};
 
+	//Init tasks stack
     task_stack_init(NUM_OF_TASKS, ptasks);
+
+    //Switch to PSP stack on Thread Mode
+    switch_to_psp(PSP_START);
+
+    task1();
 
     /* Loop forever */
 	for(;;);
@@ -114,6 +129,20 @@ void task_stack_init(const uint8_t num_of_tasks, uint32_t* tasks_addr) {
 		//Save the task psp
 		tasks_psp[i] = psp;
 	}
+}
+
+__attribute__((naked)) void sche_stack_init(const uint32_t msp_start){
+	__asm volatile("MSR MSP,%0" : : "r"(msp_start));
+	__asm volatile("BX LR");
+}
+
+__attribute__((naked)) void switch_to_psp(const uint32_t psp_start) {
+	uint32_t ret_control;
+	__asm volatile("MSR PSP, %0" : : "r"(psp_start));
+	__asm volatile("MRS %0,CONTROL" : "=r"(ret_control));
+	ret_control |= (1 << 1);
+	__asm volatile("MSR CONTROL, %0" : : "r"(ret_control));
+	__asm volatile("BX LR");
 }
 
 /* Tasks Implementations */
